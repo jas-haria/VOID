@@ -1,0 +1,33 @@
+<mat-table [dataSource]="dataSource">
+    <ng-container *ngIf="isCheckbox" matColumnDef="select">
+        <mat-header-cell *matHeaderCellDef>
+          <mat-checkbox (change)="$event ? masterToggle() : null"
+                        [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+          </mat-checkbox>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <mat-checkbox (click)="$event.stopPropagation()"
+                        (change)="$event ? rowToggle(row) : null"
+                        [checked]="selection.isSelected(row)">
+          </mat-checkbox>
+        </mat-cell>
+      </ng-container>
+
+    <ng-container [matColumnDef]="column" *ngFor="let column of getDisplayedColumns(false); let i=index">
+        <mat-header-cell *matHeaderCellDef>{{ displayedColumnsHeaders[i] }}</mat-header-cell>
+        <mat-cell *matCellDef="let element">
+            <p *ngIf="specialColumns.indexOf(column) == -1">{{ element[column] }}</p>
+            <a *ngIf="column == 'question_text'" href="{{element['question_url']}}" target="_blank">
+                <p>{{ element[column] }}</p>
+            </a>
+        </mat-cell>
+    </ng-container>
+
+  
+    <mat-header-row *matHeaderRowDef="getDisplayedColumns(true)"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: getDisplayedColumns(true)"></mat-row>
+</mat-table>
+
+<mat-paginator #paginator [length]="totalLength" [pageSizeOptions]="pageSizeOptions">
+</mat-paginator>

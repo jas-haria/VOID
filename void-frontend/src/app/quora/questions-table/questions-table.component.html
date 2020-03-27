@@ -1,0 +1,28 @@
+<mat-form-field>
+    <mat-label>Divisions</mat-label>
+        <mat-select [formControl]="divisionFormControl" multiple>
+            <mat-option *ngFor="let division of divisions" [value]="division">{{division.division}}</mat-option>
+        </mat-select>
+</mat-form-field>
+
+<mat-form-field>
+    <mat-label>Time Period</mat-label>
+        <mat-select [formControl]="timeFormControl">
+            <mat-option *ngFor="let time of timePeriodEnumArray" [value]="time">{{"Past " + time}}</mat-option>
+        </mat-select>
+</mat-form-field>
+
+<mat-slide-toggle [formControl]="evaluatedFormControl">Evaluated</mat-slide-toggle>
+
+<button mat-button [disabled]="disableButton()" (click)="refreshData()">Refresh Data</button>
+
+<app-table
+    [displayedColumns]="displayedColumns"
+    [displayedColumnsHeaders]="displayedColumnsHeaders"
+    [dataSource]="dataSource"
+    [totalLength]="totalLength"
+    [pageSizeOptions]="pageSizeOptions"
+    [isCheckbox]="isCheckbox"
+    (pageUpdateEvent)="pageUpdateEvent($event)"
+    (selectionEvent)="selectionEvent($event)">
+</app-table>
