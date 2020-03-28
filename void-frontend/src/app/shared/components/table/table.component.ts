@@ -2,7 +2,7 @@ import { Component, OnInit, Input, AfterViewInit, ViewChild, Output, EventEmitte
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatRow } from '@angular/material/table';
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-table',
@@ -19,6 +19,7 @@ export class TableComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input('totalLength') public totalLength: number;
   @Input('pageSizeOptions') public pageSizeOptions: number[];
   @Input('isCheckbox') public isCheckbox: boolean;
+  @Input('clearSelect') clearSelect: Observable<void>;
   @Output() pageUpdateEvent: EventEmitter<PageEvent> = new EventEmitter();
   @Output() selectionEvent: EventEmitter<any[]> = new EventEmitter();
   specialColumns = ["question_text"];
@@ -26,7 +27,13 @@ export class TableComponent implements OnInit, AfterViewInit, OnDestroy {
   
   constructor() { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.subscription.add(
+      this.clearSelect.subscribe(input => {
+        this.selection.clear();
+      })
+    );
+  }
 
   ngAfterViewInit(): void {
     this.subscription.add(
