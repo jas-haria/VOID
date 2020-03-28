@@ -115,8 +115,9 @@ def fill_dates(question_list):
     return question_list
 
 def delete_questions(question_ids_list):
+    print(question_ids_list)
     session = getNewSession()
-    deleted_questions = QuoraQuestion.__table__.delete().where(QuoraQuestion.id.in_(question_ids_list))
+    session.query(QuoraQuestion).filter(QuoraQuestion.id.in_(question_ids_list)).delete(synchronize_session=False)
     session.commit()
     return {}
 
@@ -124,12 +125,10 @@ def update_evaluated(question_ids_list, evaluated):
     session = getNewSession()
     session.query(QuoraQuestion).filter(QuoraQuestion.id.in_(question_ids_list)).update({QuoraQuestion.evaluated: evaluated}, synchronize_session=False)
     session.commit()
-
     return {}
 
 def get_questions(division_ids, time, evaluated, page_number, page_size):
     session = getNewSession()
     query = session.query(QuoraQuestion).filter(QuoraQuestion.division.in_(division_ids))\
         .filter(QuoraQuestion.asked_on > get_time_interval(time)).filter((QuoraQuestion.evaluated).is_(evaluated))
-    print(division_ids, evaluated)
     return paginate(query=query, page_number=int(page_number), page_limit=int(page_size))

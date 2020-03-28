@@ -5,7 +5,7 @@ import { QuoraService } from '../quora.service';
 import { Page } from 'src/app/shared/models/page.model';
 import { PageEvent } from '@angular/material/paginator';
 import { QuoraQuestion } from 'src/app/shared/models/quora-question.model';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
 import { Division } from 'src/app/shared/models/division.model';
 import { DivisionService } from 'src/app/division/division.service';
 import { FormControl, Validators } from '@angular/forms';
@@ -37,6 +37,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   selectedEvaluation: boolean = false;
   selectedPage: number = 0;
   selectedSize: number = this.pageSizeOptions[0];
+  clearSelect: Subject<void> = new Subject<void>()
     
   constructor(private _route: ActivatedRoute,
     private _router: Router,
@@ -70,8 +71,11 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
           this.selectedSize = this.pageSizeOptions.includes(Number(params['size']))? Number(params['size']): this.pageSizeOptions[0];
           this.selectedPage = Number(params['page']) > 0? Number(params['page']) - 1: 0; // -1 because first page on server is 0
           this.selectedDivisions = params['divisions'];
-          this.selectedEvaluation = params['evaluated'];
-          this.selectedTimePeriod = params['timePeriod'];
+          this.selectedEvaluation = params['evaluated'] == 'false'? false: true;
+          this.selectedTimePeriod = this.getTimePeriod(params['timePeriod']);
+          this.evaluatedFormControl.setValue(this.selectedEvaluation);
+          this.timeFormControl.setValue(this.selectedTimePeriod)
+          this.divisionFormControl.setValue(this.divisions.filter(val => this.selectedDivisions.includes(Number(val.id))));
           this.refreshDataSource();
         }
       })
@@ -88,7 +92,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   }
 
   refreshData(): void {
-    this.fillSelectedDivisions(this.divisionFormControl.value);
+    this.selectedDivisions = this.getIdsFromArray(this.divisionFormControl.value);
     let parameters = this.setUrlParameters(1, this.selectedSize, this.selectedDivisions, this.evaluatedFormControl.value, this.timeFormControl.value)
     this._router.navigate([this._router.url.split('?')[0]], {queryParams: parameters});
   }
@@ -126,7 +130,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   initialiseDivisions(divisions: Division[]): void {
     this.divisions = divisions;
     this.divisionFormControl.patchValue(divisions);
-    this.fillSelectedDivisions(divisions);
+    this.selectedDivisions = this.getIdsFromArray(divisions);
   }
 
   disableButton(): boolean {
@@ -136,11 +140,38 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  fillSelectedDivisions(divisions: Division[]): void {
-    this.selectedDivisions = [];
-    divisions.forEach((element: Division) => {
-      this.selectedDivisions.push(element.id)
-    });
+  updateEvaluationData(): void {
+    this.subscription.add(
+      this._quoraService.updateQuestionsEvaluation(this.getIdsFromArray(this.selected), !this.selectedEvaluation).subscribe(response => {
+        this.clearSelect.next();
+        this.refreshDataSource();
+      })
+    );
+  }
+
+  deleteQuestions(): void {
+    this.subscription.add(
+      this._quoraService.deleteQuestions(this.getIdsFromArray(this.selected)).subscribe(response => {
+        this.clearSelect.next();
+        this.refreshDataSource();
+      })
+    );
+  }
+
+  getIdsFromArray(arr: any[]): number[] {
+    var result = [];
+    arr.forEach(element => {
+      result.push(element.id);
+    })
+    return result;
+  }
+
+  getTimePeriod(time: string): TimePeriod {
+      switch(time) {
+        case 'day': return TimePeriod.DAY
+        case 'week': return TimePeriod.WEEK
+        case 'month': return TimePeriod.MONTH
+      }
   }
 
 }

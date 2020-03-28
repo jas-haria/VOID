@@ -43,7 +43,6 @@ def convertListToJson(list):
 
 def paginate(query, page_number, page_limit):
     length = query.count()
-    print(page_number, page_limit)
     if page_number > 0:
         query = query.offset((page_number)*page_limit)
     query = query.limit(page_limit)

@@ -16,6 +16,11 @@
 
 <button mat-button [disabled]="disableButton()" (click)="refreshData()">Refresh Data</button>
 
+<br/>
+
+<button mat-button [disabled]="selected.length == 0" (click)="updateEvaluationData()" >{{ "Mark as " + (selectedEvaluation? "not ": "") + "Evaluated" }}</button>
+<button mat-button [disabled]="selected.length == 0" (click)="deleteQuestions()">Delete Questions</button>
+
 <app-table
     [displayedColumns]="displayedColumns"
     [displayedColumnsHeaders]="displayedColumnsHeaders"
@@ -23,6 +28,7 @@
     [totalLength]="totalLength"
     [pageSizeOptions]="pageSizeOptions"
     [isCheckbox]="isCheckbox"
+    [clearSelect]="clearSelect.asObservable()"
     (pageUpdateEvent)="pageUpdateEvent($event)"
     (selectionEvent)="selectionEvent($event)">
 </app-table>
