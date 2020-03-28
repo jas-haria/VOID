@@ -1,3 +1,4 @@
-void-backend/venv
 void-frontend/node_modules
-
+void-backend/venv/
+void-backend/.idea/
+void-backend/__pycache__/
