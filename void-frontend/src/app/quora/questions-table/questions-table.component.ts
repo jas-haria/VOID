@@ -30,8 +30,6 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   divisions: Division[] = [];
   timePeriodEnumArray: TimePeriod[] = Object.values(TimePeriod) 
   divisionFormControl = new FormControl([], Validators.required);
-  timeFormControl = new FormControl(TimePeriod.WEEK);
-  evaluatedFormControl = new FormControl(false);
   selectedDivisions: number[] = [];
   selectedTimePeriod: TimePeriod = TimePeriod.WEEK;
   selectedEvaluation: boolean = false;
@@ -73,8 +71,6 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
           this.selectedDivisions = params['divisions'];
           this.selectedEvaluation = params['evaluated'] == 'false'? false: true;
           this.selectedTimePeriod = this.getTimePeriod(params['timePeriod']);
-          this.evaluatedFormControl.setValue(this.selectedEvaluation);
-          this.timeFormControl.setValue(this.selectedTimePeriod)
           this.divisionFormControl.setValue(this.divisions.filter(val => this.selectedDivisions.includes(Number(val.id))));
           this.refreshDataSource();
         }
@@ -92,8 +88,9 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   }
 
   refreshData(): void {
+    this.clearSelect.next();
     this.selectedDivisions = this.getIdsFromArray(this.divisionFormControl.value);
-    let parameters = this.setUrlParameters(1, this.selectedSize, this.selectedDivisions, this.evaluatedFormControl.value, this.timeFormControl.value)
+    let parameters = this.setUrlParameters(1, this.selectedSize, this.selectedDivisions, this.selectedEvaluation, this.selectedTimePeriod)
     this._router.navigate([this._router.url.split('?')[0]], {queryParams: parameters});
   }
 
@@ -133,13 +130,6 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
     this.selectedDivisions = this.getIdsFromArray(divisions);
   }
 
-  disableButton(): boolean {
-    if (null != this.divisionFormControl && this.divisionFormControl.valid) {
-      return false;
-    }
-    return true;
-  }
-
   updateEvaluationData(): void {
     this.subscription.add(
       this._quoraService.updateQuestionsEvaluation(this.getIdsFromArray(this.selected), !this.selectedEvaluation).subscribe(response => {
@@ -172,6 +162,22 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
         case 'week': return TimePeriod.WEEK
         case 'month': return TimePeriod.MONTH
       }
+  }
+
+  updateTimeData(eventValue: TimePeriod): void {
+    this.selectedTimePeriod = eventValue;
+    this.refreshData();
+  }
+
+  updateDivisionsData(): void {
+    if (this.divisionFormControl.valid) {
+      this.refreshData();
+    }
+  }
+
+  updateEvaluationToggleData(eventChecked: boolean): void {
+    this.selectedEvaluation = eventChecked;
+    this.refreshData();
   }
 
 }

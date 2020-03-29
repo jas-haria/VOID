@@ -5,10 +5,9 @@ import { QuestionsTableComponent } from './questions-table/questions-table.compo
 import { RouterModule, Routes } from '@angular/router';
 import { QuoraService } from './quora.service';
 import { SharedModule } from '../shared/shared.module';
-import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 
 export const QuoraRoutes: Routes = [
@@ -28,10 +27,9 @@ export const QuoraRoutes: Routes = [
     CommonModule,
     RouterModule.forChild(QuoraRoutes),
     SharedModule,
-    MatSelectModule,
     ReactiveFormsModule,
     MatSlideToggleModule,
-    MatButtonModule
+    MatButtonToggleModule
   ],
   exports : [
     RouterModule
