@@ -15,11 +15,14 @@ export class TableComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('paginator') public paginator: MatPaginator;
   @Input('displayedColumnsHeaders') public displayedColumnsHeaders: string[];
   @Input('displayedColumns') public displayedColumns: string[];
+  @Input('displayedColumnsWidth') public displayedColumnsWidth: {};
   @Input('dataSource') public dataSource: any[];
   @Input('totalLength') public totalLength: number;
   @Input('pageSizeOptions') public pageSizeOptions: number[];
   @Input('isCheckbox') public isCheckbox: boolean;
-  @Input('clearSelect') clearSelect: Observable<void>;
+  @Input('clearSelect') public clearSelect: Observable<void>;
+  @Input('pageIndex') public pageIndex: number;
+  @Input('pageSize') public pageSize: number;
   @Output() pageUpdateEvent: EventEmitter<PageEvent> = new EventEmitter();
   @Output() selectionEvent: EventEmitter<any[]> = new EventEmitter();
   specialColumns = ["question_text"];
@@ -74,5 +77,12 @@ export class TableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   emitSelectionEvent(): void {
     this.selectionEvent.emit(this.selection.selected);
+  }
+
+  getColumnWidth(column: string): number {
+    if (column && this.displayedColumnsWidth && this.displayedColumnsWidth[column]) {
+      return this.displayedColumnsWidth[column];
+    }
+    return 10;
   }
 }

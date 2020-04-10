@@ -1,33 +1,35 @@
-<mat-table [dataSource]="dataSource">
-    <ng-container *ngIf="isCheckbox" matColumnDef="select">
-        <mat-header-cell *matHeaderCellDef>
+<div>
+  <table mat-table [dataSource]="dataSource" class="table table-striped">
+      <ng-container *ngIf="isCheckbox" matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef class="align-middle" [style.width.%]="getColumnWidth('checkbox')">
           <mat-checkbox (change)="$event ? masterToggle() : null"
                         [checked]="selection.hasValue() && isAllSelected()"
-                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+                        [indeterminate]="selection.hasValue() && !isAllSelected()"
+                        class="mb-0 px-1">
           </mat-checkbox>
-        </mat-header-cell>
-        <mat-cell *matCellDef="let row">
+        </th>
+        <td mat-cell *matCellDef="let row" class="align-middle" [style.width.%]="getColumnWidth('checkbox')">
           <mat-checkbox (click)="$event.stopPropagation()"
                         (change)="$event ? rowToggle(row) : null"
-                        [checked]="selection.isSelected(row)">
+                        [checked]="selection.isSelected(row)"
+                        class="mb-0 px-1">
           </mat-checkbox>
-        </mat-cell>
+        </td>
       </ng-container>
-
-    <ng-container [matColumnDef]="column" *ngFor="let column of getDisplayedColumns(false); let i=index">
-        <mat-header-cell *matHeaderCellDef>{{ displayedColumnsHeaders[i] }}</mat-header-cell>
-        <mat-cell *matCellDef="let element">
-            <p *ngIf="specialColumns.indexOf(column) == -1">{{ element[column] }}</p>
-            <a *ngIf="column == 'question_text'" href="{{element['question_url']}}" target="_blank">
-                <p>{{ element[column] }}</p>
-            </a>
-        </mat-cell>
-    </ng-container>
-
-  
-    <mat-header-row *matHeaderRowDef="getDisplayedColumns(true)"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: getDisplayedColumns(true)"></mat-row>
-</mat-table>
-
-<mat-paginator #paginator [length]="totalLength" [pageSizeOptions]="pageSizeOptions">
-</mat-paginator>
+      <ng-container [matColumnDef]="column" *ngFor="let column of getDisplayedColumns(false); let i=index">
+        <th mat-header-cell *matHeaderCellDef class="align-middle px-1" [style.width.%]="getColumnWidth(column)"><p class="mb-0">{{ displayedColumnsHeaders[i] }}</p></th>
+        <td mat-cell *matCellDef="let element" class="align-middle px-1" [style.width.%]="getColumnWidth(column)">
+          <p *ngIf="specialColumns.indexOf(column) == -1" class="mb-0">{{ element[column] }}</p>
+          <a *ngIf="column == 'question_text'" href="{{element['question_url']}}" target="_blank">
+              <p class="mb-0">{{ element[column] }}</p>
+          </a>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="getDisplayedColumns(true); sticky: true" class="thead-light"></tr>
+      <tr mat-row *matRowDef="let row; columns: getDisplayedColumns(true)"></tr>
+  </table>
+</div>
+<div class="bottom-sticky">
+  <mat-paginator #paginator [length]="totalLength" [pageSizeOptions]="pageSizeOptions" [pageSize]="pageSize" [pageIndex]="pageIndex">
+  </mat-paginator>
+</div>

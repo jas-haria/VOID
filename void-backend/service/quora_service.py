@@ -24,10 +24,7 @@ def refresh_data(time):
     for row in session.query(QuoraQuestion.question_url).filter(QuoraQuestion.asked_on > get_time_interval(time)):
         url_set.add(str(row.question_url).replace('https://www.quora.com', ''))
 
-    division = Division()
-    division.id = 4
-
-    for divisionIndexer in [division]:
+    for divisionIndexer in divisions:
         for keywordIndexer in keywords:
             if keywordIndexer.division == divisionIndexer.id:
                 url = "https://www.quora.com/search?q=" + keywordIndexer.keyword.replace(' ', '+') + "&time=" + time + "&type=question"

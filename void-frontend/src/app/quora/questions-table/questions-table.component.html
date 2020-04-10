@@ -1,26 +1,47 @@
-<mat-button-toggle-group aria-label="Time Period" [value]="selectedTimePeriod" (change)="updateTimeData($event.value)">
-    <mat-button-toggle *ngFor="let time of timePeriodEnumArray" [value]="time">{{"Past " + time}}</mat-button-toggle>
-</mat-button-toggle-group>
-
-<mat-slide-toggle [checked]="selectedEvaluation" (change)="updateEvaluationToggleData($event.checked)">Evaluated</mat-slide-toggle>
-
-<mat-button-toggle-group aria-label="Divisions" [formControl]="divisionFormControl" (change)="updateDivisionsData()" multiple>
-    <mat-button-toggle *ngFor="let division of divisions" [value]="division">{{division.division}}</mat-button-toggle>
-</mat-button-toggle-group>
+<div class="d-flex flex-row justify-content-between align-items-center">
+    <div>
+        <mat-button-toggle-group aria-label="Divisions" [formControl]="divisionFormControl" (change)="updateDivisionsData()" multiple class="btn-group">
+            <mat-button-toggle *ngFor="let division of divisions" [value]="division" class="btn btn-outline-secondary" [ngClass]="divisionFormControl?.value.includes(division)? 'btn-secondary':''">{{division.division}}</mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
+    <div>
+        <mat-button-toggle-group aria-label="Time Period" [value]="selectedTimePeriod" (change)="updateTimeData($event.value)" class="btn-group-toggle">
+            <mat-button-toggle *ngFor="let time of timePeriodEnumArray" [value]="time" class="btn btn-outline-secondary" [ngClass]="time==selectedTimePeriod? 'btn-secondary': ''">{{"Past " + time}}</mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
+</div>
 
 <br/>
-
-<button mat-button [disabled]="selected.length == 0" (click)="updateEvaluationData()" >{{ "Mark as " + (selectedEvaluation? "not ": "") + "Evaluated" }}</button>
-<button mat-button [disabled]="selected.length == 0" (click)="deleteQuestions()">Delete Questions</button>
-
-<app-table
-    [displayedColumns]="displayedColumns"
-    [displayedColumnsHeaders]="displayedColumnsHeaders"
-    [dataSource]="dataSource"
-    [totalLength]="totalLength"
-    [pageSizeOptions]="pageSizeOptions"
-    [isCheckbox]="isCheckbox"
-    [clearSelect]="clearSelect.asObservable()"
-    (pageUpdateEvent)="pageUpdateEvent($event)"
-    (selectionEvent)="selectionEvent($event)">
-</app-table>
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex flex-row justify-content-end align-items-center">
+            <div class="px-2">
+                <button [disabled]="selected.length == 0" (click)="updateEvaluationData()" class="btn btn-outline-primary" [ngClass]="selected.length==0? 'disabled cursor-not-allowed': ''">{{ "Mark as " + (selectedEvaluation? "not ": "") + "Evaluated" }}</button>
+            </div>
+            <div class="px-2">
+                <button [disabled]="selected.length == 0" (click)="deleteQuestions()" class="btn btn-outline-primary" [ngClass]="selected.length==0? 'disabled cursor-not-allowed': ''">Delete Questions</button>
+            </div>
+            <div class="px-2">
+                <mat-slide-toggle [checked]="selectedEvaluation" (change)="updateEvaluationToggleData($event.checked)">Evaluated</mat-slide-toggle>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div>
+            <app-table
+                [displayedColumns]="displayedColumns"
+                [displayedColumnsHeaders]="displayedColumnsHeaders"
+                [displayedColumnsWidth]="displayedColumnsWidth"
+                [dataSource]="dataSource"
+                [totalLength]="totalLength"
+                [pageSizeOptions]="pageSizeOptions"
+                [isCheckbox]="isCheckbox"
+                [clearSelect]="clearSelect.asObservable()"
+                [pageIndex]="selectedPage"
+                [pageSize]="selectedSize"
+                (pageUpdateEvent)="pageUpdateEvent($event)"
+                (selectionEvent)="selectionEvent($event)">
+            </app-table>
+        </div>
+    </div>
+</div>

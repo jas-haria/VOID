@@ -11,17 +11,13 @@ app = app_controller.app
 
 base_url = '/quora'
 
-@app.route(base_url+'/refresh', methods=['GET'])
-def test():
-    return Response(json.dumps(quora_service.refresh_data('day')), status=200, mimetype='application/json')
+@app.route(base_url+'/refreshQuestions', methods=['GET'])
+def refresh_questions_data():
+    return Response(json.dumps(quora_service.refresh_data('week')), status=200, mimetype='application/json')
 
-@app.route(base_url+'/1')
-def test1():
+@app.route(base_url+'/fillAllMissingDates', methods=['GET'])
+def fill_all_missing_dates():
     return Response(json.dumps(quora_service.fill_missing_dates()), status=200, mimetype='application/json')
-
-@app.route(base_url+'/test', methods=['GET'])
-def test2():
-    return Response({'5':'5'}, status=200, mimetype='application/json')
 
 @app.route(base_url, methods=['DELETE'])
 def delete_questions():

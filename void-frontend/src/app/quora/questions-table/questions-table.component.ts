@@ -24,6 +24,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   totalLength: number = 0;
   pageSizeOptions: number[] = [10, 15, 20];
   displayedColumns = ["id", "question_text", "division_name", "asked_on" ];
+  displayedColumnsWidth = {"id": 10, "question_text": 50, "division_name": 15, "asked_on": 15}; //remaining 5 for checkbox
   displayedColumnsHeaders = ["ID", "Question", "Division", "Asked On"];
   isCheckbox = true;
   selected: QuoraQuestion[] = [];
@@ -68,7 +69,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
         else {
           this.selectedSize = this.pageSizeOptions.includes(Number(params['size']))? Number(params['size']): this.pageSizeOptions[0];
           this.selectedPage = Number(params['page']) > 0? Number(params['page']) - 1: 0; // -1 because first page on server is 0
-          this.selectedDivisions = params['divisions'];
+          this.selectedDivisions = JSON.parse(params['divisions']);
           this.selectedEvaluation = params['evaluated'] == 'false'? false: true;
           this.selectedTimePeriod = this.getTimePeriod(params['timePeriod']);
           this.divisionFormControl.setValue(this.divisions.filter(val => this.selectedDivisions.includes(Number(val.id))));
@@ -104,6 +105,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
   }
 
   setUrlParameters(page: number, size: number, divisions: number[], evaluated: boolean, timePeriod: TimePeriod): any {
+
     return {
       'page': page,
       'size': size,
