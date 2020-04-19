@@ -1,8 +1,8 @@
 from sqlalchemy import asc
 
-from model.division import Division
-from service.util_service import getNewSession, convertListToJson
+from model.model import Division
+from service.util_service import get_new_session, convert_list_to_json
 
 def getAllDivisions():
-    session = getNewSession()
-    return convertListToJson(session.query(Division).order_by(asc(Division.id)))
+    session = get_new_session()
+    return convert_list_to_json(session.query(Division).order_by(asc(Division.id)))

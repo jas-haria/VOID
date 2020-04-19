@@ -120,7 +120,7 @@ export class QuestionsTableComponent implements OnInit, OnDestroy {
       'id': question.id,
       'question_text': question.question_text,
       'question_url': question.question_url,
-      'division_name': this.divisions.filter(division => division.id == question.division)[0].division,
+      'division_name': this.divisions.filter(division => division.id == question.division_id)[0].division,
       'evaluated': question.evaluated,
       'asked_on': formatDate(question.asked_on, 'MMM dd, yyyy', 'en-US')
     }
