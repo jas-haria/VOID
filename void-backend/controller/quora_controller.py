@@ -41,5 +41,12 @@ def refresh_requested_questions():
 
 @app.route(base_url, methods=['POST'])
 def add_asked_question():
-    print(request.json)
     return Response(json.dumps(quora_service.add_asked_question(request.json, request.args.get('account_id'))), status=200, mimetype='application/json')
+
+@app.route(base_url+'/refreshAskedQuestionsStats', methods=['GET'])
+def refresh_asked_questions_stats():
+    return Response(json.dumps(quora_service.refresh_asked_questions_stats()), status=200, mimetype='application/json')
+
+@app.route(base_url+'/refreshAccountStats', methods=['GET'])
+def refresh_accounts_stats():
+    return Response(json.dumps(quora_service.refresh_accounts_stats('week')), status=200, mimetype='application/json')

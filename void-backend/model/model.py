@@ -139,11 +139,11 @@ class QuoraAccount(Base):
     id = Column('id', Integer, primary_key=True, autoincrement=True)
     first_name = Column('first_name', String(20))
     last_name = Column('last_name', String(20))
-    email = Column('email', String(50))
-    password = Column('quora_password', String(20))
+    email = Column('email', String(50), nullable=False)
+    password = Column('quora_password', String(20), nullable=False)
     birth_date = Column('birth_date', DateTime)
     phone_number = Column('phone_number', String(15))
-    link = Column('link', String(200))
+    link = Column('link', String(200), nullable=False)
 
     questions = relationship('QuoraQuestionAccountDetails', back_populates='account')
 
@@ -163,6 +163,43 @@ class Script(Base):
 
     def __repr__(self):
         return '<Script {}>'.format(self.name)
+
+    def _asdict(self):
+        return _asdictmethod(self)
+
+class QuoraAccountStats(Base):
+    __tablename__ = "quora_account_stats"
+    __table_args__ = schema
+
+    account_id = Column('account_id', Integer, ForeignKey('void_dev.quora_accounts.id'), primary_key=True)
+    recorded_on = Column('recorded_on', Date, primary_key=True)
+    total_followers = Column('total_followers', Integer, default=0, nullable=False)
+    view_count = Column('view_count', Integer, default=0, nullable=False)
+    upvote_count = Column('upvote_count', Integer, default=0, nullable=False)
+    share_count = Column('share_count', Integer, default=0, nullable=False)
+
+    account = relationship('QuoraAccount')
+
+    def __repr__(self):
+        return '<Account - Recorded On {}>'.format(str(self.account_id) - str(self.recorded_on))
+
+    def _asdict(self):
+        return _asdictmethod(self)
+
+class QuoraAskedQuestionStats(Base):
+    __tablename__ = "quora_asked_questions_stats"
+    __table_args__ = schema
+
+    question_id = Column('question_id', Integer, ForeignKey('void_dev.quora_questions.id'), primary_key=True)
+    recorded_on = Column('recorded_on', Date, primary_key=True)
+    follower_count = Column('follower_count', Integer, default=0, nullable=False)
+    view_count = Column('view_count', Integer, default=0, nullable=False)
+    upvote_count = Column('upvote_count', Integer, default=0, nullable=False)
+
+    question = relationship('QuoraQuestion')
+
+    def __repr__(self):
+        return '<Question - Recorded On {}>'.format(self.question_id - self.recorded_on)
 
     def _asdict(self):
         return _asdictmethod(self)

@@ -15,7 +15,7 @@ def get_driver():
     print("get driver")
     options = Options()
     options.headless = True
-    return webdriver.Chrome(r"C:\Users\jasha\PycharmProjects\void\driver\chromedriver.exe")#, options=options)
+    return webdriver.Chrome(r"C:\Users\jasha\PycharmProjects\void\driver\chromedriver.exe", options=options)
 
 def scroll_to_bottom(driver, SCROLL_PAUSE_TIME):
     # Get scroll height
