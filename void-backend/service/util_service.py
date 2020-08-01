@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 def get_new_session():
@@ -14,8 +15,10 @@ def get_new_session():
 def get_driver():
     print("get driver")
     options = Options()
-    options.headless = True
-    return webdriver.Chrome(r"C:\Users\jasha\PycharmProjects\void\driver\chromedriver.exe", options=options)
+    options.add_argument("--headless")
+    #return webdriver.Chrome(r"C:\Users\jasha\PycharmProjects\void\driver\chromedriver.exe", options=options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    return driver
 
 def scroll_to_bottom(driver, SCROLL_PAUSE_TIME):
     # Get scroll height

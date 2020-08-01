@@ -7,9 +7,9 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 
-from model.model import Division, QuoraKeyword, QuoraQuestion, Script, Constant, QuoraAccount, ExecutionLog, QuoraQuestionAccountDetails, QuoraAccountStats, QuoraAskedQuestionStats
+from model.model import Division, QuoraKeyword, QuoraQuestion, Script, QuoraAccount, ExecutionLog, QuoraQuestionAccountDetails, QuoraAccountStats, QuoraAskedQuestionStats
 from model.enum import TimePeriod
-from service.util_service import get_new_session, scroll_to_bottom, get_driver, convert_list_to_json, paginate, replace_all, getConstantsDict
+from service.util_service import get_new_session, scroll_to_bottom, get_driver, paginate, replace_all
 
 LOAD_TIME = 3
 encoding = 'utf-8'
@@ -142,9 +142,7 @@ def refresh_accounts_data():
     session = get_new_session()
     script = session.query(Script).filter(Script.name == 'Refresh_Quora_Accounts_Data').first()
     execution_log = session.query(ExecutionLog).filter(ExecutionLog.script_id == script.id).first()
-    code_constants = session.query(Constant).filter(Constant.script_id == script.id).all()
     accounts = session.query(QuoraAccount).all()
-    code_constant_dict = getConstantsDict(code_constants)
     driver = get_driver()
     for account in accounts:
         driver.get(account.link)
@@ -152,21 +150,21 @@ def refresh_accounts_data():
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         breakLoop = False
         # LOOP IDENTIFIES CLASS OF EVERY QUESTION
-        for i in soup.findAll(code_constant_dict.get('class_attr_name'), attrs={'class': code_constant_dict.get('class_name')}):
+        for i in soup.findAll('div', attrs={'class': 'q-box qu-pt--medium qu-pb--medium'}):
             if breakLoop:
                 break
             # GET EACH QUESTION DATE
-            for j in i.findAll(code_constant_dict.get('sub_class_1_attr_name'), attrs={'class': code_constant_dict.get('sub_class_1_name')}):
+            for j in i.findAll('div', attrs={'class': 'q-text qu-color--gray qu-fontSize--small qu-passColorToLinks qu-truncateLines--1'}):
                 date_string = replace_all(j.getText(), {"Answered": "", "Updated": ""})
-                date_of_answer = datetime.strptime(date_string.strip(), code_constant_dict.get('date_format'))
+                date_of_answer = datetime.strptime(date_string.strip(), '%B %d, %Y')
                 #TAKING ONE EXTRA DAY BECAUSE QUESTIONS CAN BE ASKED ON DIFFERENT TIMES ON THE SAME DAY
                 if date_of_answer < execution_log.execution_time - relativedelta(days=1):
                     breakLoop = True
                     break
 
                 # GET ALL QUESTIONS NEWLY ANSWERED
-                for k in i.findAll(code_constant_dict.get('sub_class_2_attr_name'), attrs={'class': code_constant_dict.get('sub_class_2_name')}):
-                    question_link = ("https://www.quora.com"+k.get('href')).encode(encoding)
+                for k in i.findAll('a', attrs={'class': 'q-box qu-cursor--pointer qu-hover--textDecoration--underline'}):
+                    question_link = ("https://www.quora.com"+k.get('href'))
                     #SAVE QUESTION AS ANSWERED IN DB (TO DO)
                     question = session.query(QuoraQuestion).filter(QuoraQuestion.question_url == question_link).first()
                     if question is not None:
@@ -184,7 +182,6 @@ def refresh_accounts_data():
             if count == 4:
                 follower_count = replace_all(i.getText(), {"Follower": "", "s": ""})
                 follower_count_object = session.query(QuoraAccountStats).filter(QuoraAccountStats.recorded_on == datetime.now().date()).filter(QuoraAccountStats.account_id == account.id).first()
-                print(follower_count_object._asdict())
                 if follower_count_object is None:
                     follower_count_object = QuoraAccountStats()
                     follower_count_object.account = account
@@ -225,14 +222,15 @@ def refresh_requested_questions():
         scroll_to_bottom(driver, LOAD_TIME)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         # GET REQUESTED QUESTIONS
-        for i in soup.findAll('a', attrs={'class': 'question_link'}):
+        for i in soup.findAll('a', attrs={'class': 'q-box qu-cursor--pointer qu-hover--textDecoration--underline'}):
             question_url = ("https://www.quora.com/" + i.get('href').replace('unanswered/', '', 1)).encode(encoding)
             question = session.query(QuoraQuestion).filter(QuoraQuestion.question_url == question_url).first()
             if question is None:
                 question = QuoraQuestion()
                 question.question_url = question_url
-                question.question_text = i.find('span', attrs={'class': 'ui_qtext_rendered_qtext'}).text.encode(encoding)
+                question.question_text = i.get_text().encode(encoding)
                 question.division = default_division
+                question.asked_on = datetime.now().date() #DATE DOES NOT MATTER FOR THIS QUESTION
                 session.add(question)
             qqad = session.query(QuoraQuestionAccountDetails).filter(QuoraQuestionAccountDetails.account == account).filter(QuoraQuestionAccountDetails.question == question).first()
             if qqad is None:
@@ -274,18 +272,18 @@ def refresh_asked_questions_stats():
             qaqs.question = question_detail.question
             qaqs.recorded_on = datetime.now().date()
         # GET NUMBER OF ANSWERS
-        for i in soup.findAll('div', attrs={'class': 'answer_count'}):
-            qaqs.follower_count = int(replace_all(i.get_text(), {'Answer': '', 's': '', ',': ''}).strip())
+        for i in soup.findAll('div', attrs={'class': 'q-text qu-medium qu-fontSize--regular qu-color--gray_dark qu-passColorToLinks'}):
+            if "Answer" in i.get_text():
+                qaqs.answer_count = int(replace_all(i.get_text(), {'Answer': '', 's': '', ',': ''}).strip())
 
         driver.get(question_detail.question.question_url+'/log')
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         # IDENTIFIES STATS PER QUESTION
-        for i in soup.findAll('div', attrs={'class': 'QuestionStats'}):
-            for j in i.findAll('div', attrs={'class': 'u-flex u-flex-align--center u-padding-vert--xs u-text--gray-light pass_color_to_child_links u-sans-font-main--small'}):
-                if "Public Follower" in j.get_text():
-                    qaqs.follower_count = int(replace_all(j.get_text(), {'Public Follower': '', 's': '', ',': ''}).strip())
-                if "View" in j.get_text():
-                    qaqs.view_count = int(replace_all(j.get_text(), {'View': '', 's': '', ',': ''}).strip())
+        for j in soup.findAll('div', attrs={'class': 'q-flex qu-py--tiny qu-px--medium qu-alignItems--center'}):
+            if "Public Follower" in j.get_text():
+                qaqs.follower_count = int(replace_all(j.get_text(), {'Public Follower': '', 's': '', ',': ''}).strip())
+            if "View" in j.get_text():
+                qaqs.view_count = int(replace_all(j.get_text(), {'View': '', 's': '', ',': ''}).strip())
         session.add(qaqs)
 
     driver.quit()
@@ -302,8 +300,8 @@ def refresh_accounts_stats(time_period):
         list = driver.find_element_by_class_name("menu_link")
         list.click()
         time.sleep(LOAD_TIME)
-        lastWeek = driver.find_element_by_name("1")
-        lastWeek.click()
+        last_week = driver.find_element_by_name("1")
+        last_week.click()
         time.sleep(LOAD_TIME)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -366,10 +364,11 @@ def get_qas_xaxis_dates(soup):
     xaxis_dates_tmp = []
     for i in soup.findAll('div', attrs={'class': 'x_tick plain'}):
         xaxis_date = datetime.strptime(i.get_text().strip(), '%b %d').date()
-        if xaxis_date in xaxis_dates_tmp:
+        if xaxis_date in xaxis_dates_tmp: #To check if the date got repeated
             for j in soup.findAll('div', attrs={'class': 'x_tick plain last_tick'}):
                 xaxis_dates_tmp.append(datetime.strptime(j.get_text().strip(), '%b %d').date())
                 for value in xaxis_dates_tmp:
+                    # CONDITION IF NEW YEAR LIES IN BETWEEN WEEK
                     if value.month == 12 and datetime.now().month == 1:
                         year_value = datetime.now().year - 1
                     else:
@@ -380,17 +379,8 @@ def get_qas_xaxis_dates(soup):
         xaxis_dates_tmp.append(xaxis_date)
     return xaxis_dates
 
-def  fill_qas_object_array(qas, xaxis_dates, account):
-    qas_array = []
-    for date_object in xaxis_dates:
-        qas = QuoraAccountStats()
-        qas.recorded_on = date_object
-        qas.account = account
-    qas_array.append(qas)
-    return qas_array
-
 def get_qas_graph_data(soup):
-    # GET YAXIS VALUES AND HEIGHT FOR 1 UNIT
+    # GET YAXIS VALUES AND HEIGHT FOR 1
     yaxis_values = []
     for i in soup.findAll('g', attrs={'style': 'opacity: 1;'}):
         yaxis_value = {}
@@ -401,6 +391,7 @@ def get_qas_graph_data(soup):
         yaxis_values.append(yaxis_value)
     height_for_one = (yaxis_values[0]['pixel'] - yaxis_values[1]['pixel']) / (
                 yaxis_values[1]['number'] - yaxis_values[0]['number'])
+    #GET VALUES FOR EACH DATE
     values = []
     for i in soup.findAll('div', attrs={'class': 'rickshaw_graph'}):
         for j in i.findAll('rect'):

@@ -11,24 +11,6 @@ def _asdictmethod(object):
     return {c.key: (str(getattr(object, c.key)) if isinstance(getattr(object, c.key), date) else getattr(object, c.key))
             for c in inspect(object).mapper.column_attrs}
 
-
-class Constant(Base):
-    __tablename__ = "constants"
-    __table_args__ = schema
-
-    key = Column('constant_key', String(50), primary_key=True)
-    value = Column('constant_value', String(100))
-    script_id = Column('script_id', Integer, ForeignKey('void_dev.scripts.id'), primary_key=True)
-
-    script = relationship('Script')
-
-    def __repr__(self):
-        return '<Constant {}>'.format(self.key)
-
-    def _asdict(self):
-        return _asdictmethod(self)
-
-
 class Division(Base):
     __tablename__ = "divisions"
     __table_args__ = schema
@@ -194,7 +176,7 @@ class QuoraAskedQuestionStats(Base):
     recorded_on = Column('recorded_on', Date, primary_key=True)
     follower_count = Column('follower_count', Integer, default=0, nullable=False)
     view_count = Column('view_count', Integer, default=0, nullable=False)
-    upvote_count = Column('upvote_count', Integer, default=0, nullable=False)
+    answer_count = Column('answer_count', Integer, default=0, nullable=False)
 
     question = relationship('QuoraQuestion')
 
